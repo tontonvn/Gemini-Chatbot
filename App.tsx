@@ -9,8 +9,10 @@ import {
   ShieldCheck,
   Terminal,
   ExternalLink,
-  CheckCircle2,
-  Info
+  Info,
+  ChevronRight,
+  Settings,
+  Lock
 } from 'lucide-react';
 
 interface Message {
@@ -25,7 +27,7 @@ const App: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: 'こんにちは！PythonとGemini APIを使ったチャットボットの準備ができました。右上の「デプロイ手順」ボタンを押すと、自分のボットとして公開する方法を確認できます。',
+      content: 'こんにちは！ボットのコードは完成しています。\n\nあとはVercelの設定画面で「API_KEY」を登録するだけです。手順がわからない場合は、右上の「デプロイ手順」を開いてステップ4を確認してください！',
       timestamp: new Date(),
     }
   ]);
@@ -55,8 +57,6 @@ const App: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 本番環境（Vercel）ではPython API (/api/chat) を叩く
-      // 開発環境（プレビュー）では直接Gemini APIを叩くか、エラーハンドリングする
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,7 +81,7 @@ const App: React.FC = () => {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '現在はプレビューモードです。VercelにデプロイしてAPIキーを設定すると、Pythonバックエンド経由で会話ができるようになります。',
+        content: 'エラー：APIキーが未設定か、通信に失敗しました。VercelのSettingsで API_KEY を設定し、再デプロイしてください。',
         timestamp: new Date(),
       }]);
     } finally {
@@ -90,21 +90,21 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen max-h-screen bg-[#f3f4f6]">
+    <div className="flex flex-col h-screen max-h-screen bg-[#f8fafc]">
       {/* Navbar */}
-      <nav className="bg-white border-b px-6 py-3 flex items-center justify-between shadow-sm z-10">
+      <nav className="bg-white border-b px-6 py-3 flex items-center justify-between shadow-sm z-30">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-indigo-200 shadow-lg">
             <Bot className="text-white w-6 h-6" />
           </div>
           <div>
             <h1 className="font-bold text-gray-800 leading-none">Gemini Bot</h1>
-            <span className="text-[10px] text-green-500 font-bold uppercase tracking-wider">Python Powered</span>
+            <span className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">Serverless Python</span>
           </div>
         </div>
         <button 
           onClick={() => setShowGuide(!showGuide)}
-          className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-100 transition-all flex items-center gap-2"
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${showGuide ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
         >
           <Info className="w-4 h-4" />
           デプロイ手順
@@ -113,17 +113,17 @@ const App: React.FC = () => {
 
       <main className="flex-1 flex overflow-hidden relative">
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col min-w-0 bg-white md:m-4 md:rounded-2xl md:shadow-xl border overflow-hidden">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+        <div className="flex-1 flex flex-col min-w-0 bg-white">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
             {messages.map((m) => (
               <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`flex max-w-[90%] md:max-w-[75%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${m.role === 'user' ? 'bg-indigo-600' : 'bg-gray-200'}`}>
-                    {m.role === 'user' ? <User className="w-5 h-5 text-white" /> : <Bot className="w-5 h-5 text-gray-600" />}
+                <div className={`flex max-w-[92%] md:max-w-[80%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-3`}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    {m.role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                   </div>
-                  <div className={`px-4 py-3 rounded-2xl shadow-sm ${m.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'}`}>
+                  <div className={`px-5 py-3 rounded-2xl shadow-sm leading-relaxed ${m.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-gray-50 border border-gray-100 text-gray-800 rounded-bl-none'}`}>
                     <p className="text-sm md:text-base whitespace-pre-wrap">{m.content}</p>
-                    <p className={`text-[10px] mt-1 opacity-60 ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
+                    <p className={`text-[10px] mt-1.5 opacity-50 ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
                       {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -131,35 +131,35 @@ const App: React.FC = () => {
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-start items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-gray-600 animate-pulse" />
+              <div className="flex justify-start items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-gray-400 animate-pulse" />
                 </div>
-                <div className="bg-gray-100 px-4 py-3 rounded-2xl rounded-bl-none">
-                  <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></span>
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
+                <div className="bg-gray-50 border border-gray-100 px-5 py-3 rounded-2xl rounded-bl-none">
+                  <div className="flex gap-1.5">
+                    <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></span>
+                    <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
+                    <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="p-4 bg-white border-t">
+          <div className="p-4 md:p-6 bg-white border-t">
             <div className="max-w-4xl mx-auto relative">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Geminiにメッセージを送る..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl py-4 pl-4 pr-14 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                placeholder="AIに質問してみる..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-5 pr-16 focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 transition-all text-sm md:text-base"
               />
               <button 
                 onClick={handleSendMessage}
                 disabled={isLoading || !input.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-600 text-white p-2.5 rounded-lg hover:bg-indigo-700 disabled:opacity-40 transition-all shadow-md shadow-indigo-100"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 disabled:opacity-30 transition-all shadow-lg shadow-indigo-100"
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -167,47 +167,87 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Guide Sidebar */}
+        {/* Improved Guide Sidebar */}
         {showGuide && (
-          <div className="absolute inset-0 md:relative md:w-[400px] bg-white border-l z-20 overflow-y-auto animate-in slide-in-from-right duration-300">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800">デプロイ完全ガイド</h2>
-                <button onClick={() => setShowGuide(false)} className="text-gray-400 hover:text-gray-600 md:hidden">閉じる</button>
+          <div className="absolute inset-0 md:relative md:w-[450px] bg-white border-l z-40 overflow-y-auto animate-in slide-in-from-right duration-300">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">デプロイ手順</h2>
+                <button onClick={() => setShowGuide(false)} className="p-2 hover:bg-gray-100 rounded-lg md:hidden">
+                  <ChevronRight className="w-6 h-6 text-gray-400" />
+                </button>
               </div>
 
-              <div className="space-y-8">
+              <div className="space-y-10">
                 <Step 
-                  icon={<ShieldCheck className="text-green-500" />}
-                  title="1. APIキーの取得"
-                  desc="Google AI Studioで'Create API key'をクリック。これがAIの脳を使うための鍵になります。"
+                  number="1"
+                  icon={<ShieldCheck className="text-emerald-500 w-6 h-6" />}
+                  title="Gemini APIキーを取得"
+                  desc="Google AI Studioにログインし、'Create API key'を押してキーをコピーしておきます。"
                   link="https://aistudio.google.com/"
                 />
+                
                 <Step 
-                  icon={<Github className="text-gray-900" />}
-                  title="2. GitHubにアップロード"
-                  desc="GitHubで新しいリポジトリ(PublicでOK)を作り、現在のファイルをすべてアップロードしてください。"
+                  number="2"
+                  icon={<Github className="text-gray-900 w-6 h-6" />}
+                  title="GitHubへ保存"
+                  desc="GitHubで新しいRepositoryを作成し、このコード一式をアップロード（Push）します。"
                   link="https://github.com/new"
                 />
+
                 <Step 
-                  icon={<CloudLightning className="text-blue-500" />}
-                  title="3. Vercelで公開"
-                  desc="VercelにGitHubアカウントでログインし、先ほどのリポジトリをImportします。"
+                  number="3"
+                  icon={<CloudLightning className="text-blue-500 w-6 h-6" />}
+                  title="Vercelで公開"
+                  desc="VercelにGitHub連携でログインし、作成したリポジトリをImportしてDeployボタンを押します。"
                   link="https://vercel.com/new"
                 />
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2 text-amber-800 font-bold text-sm">
-                    <Terminal className="w-4 h-4" /> 
-                    最重要：環境変数の設定
+
+                <div className="relative pl-12 border-l-2 border-indigo-100 pb-2">
+                  <div className="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-indigo-200">
+                    4
                   </div>
-                  <p className="text-xs text-amber-700 leading-relaxed">
-                    Vercelのプロジェクト設定（Settings > Environment Variables）で、Nameに <code className="bg-amber-100 px-1 rounded font-mono">API_KEY</code> 、Valueに <b>取得したGeminiのキー</b> を入力して保存してください。
-                  </p>
+                  <div className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100">
+                    <div className="flex items-center gap-2 mb-3 text-indigo-900 font-black text-base">
+                      <Settings className="w-5 h-5 animate-spin-slow" /> 
+                      Vercelでの設定方法（重要）
+                    </div>
+                    <ol className="text-sm text-indigo-800 space-y-3 leading-relaxed">
+                      <li className="flex gap-2">
+                        <span className="font-bold">①</span> 
+                        Vercelのプロジェクト画面上部の <span className="bg-white px-1.5 py-0.5 rounded border border-indigo-200 font-bold">Settings</span> タブを開く
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold">②</span> 
+                        左メニューの <span className="bg-white px-1.5 py-0.5 rounded border border-indigo-200 font-bold">Environment Variables</span> をクリック
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold">③</span> 
+                        以下の通り入力して <span className="text-indigo-600 font-bold">Add</span> を押す
+                      </li>
+                    </ol>
+                    
+                    <div className="mt-4 space-y-2 bg-white p-3 rounded-xl border border-indigo-100 font-mono text-xs">
+                      <div className="flex justify-between border-b pb-1">
+                        <span className="text-gray-400">Key (Name)</span>
+                        <span className="font-bold text-indigo-600">API_KEY</span>
+                      </div>
+                      <div className="flex justify-between pt-1">
+                        <span className="text-gray-400">Value</span>
+                        <span className="text-gray-600">コピーしたAIキーを貼付</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-start gap-2 text-[11px] text-indigo-500 bg-white/50 p-2 rounded-lg">
+                      <Lock className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                      最後に「Deployments」タブから最新のビルドの横にある「...」を押し、「Redeploy」すると設定が反映されます。
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t">
-                <p className="text-xs text-gray-400 text-center italic">これですべて無料・広告なしで自分専用のAIチャットが動き始めます！</p>
+              <div className="mt-12 text-center">
+                <p className="text-xs text-gray-400">困ったらChatGPTやGeminiに「VercelのEnvironment Variablesの設定方法を教えて」と聞くのもおすすめです！</p>
               </div>
             </div>
           </div>
@@ -217,14 +257,19 @@ const App: React.FC = () => {
   );
 };
 
-const Step = ({ icon, title, desc, link }: { icon: any, title: string, desc: string, link: string }) => (
-  <div className="flex gap-4">
-    <div className="mt-1">{icon}</div>
+const Step = ({ number, icon, title, desc, link }: { number: string, icon: any, title: string, desc: string, link: string }) => (
+  <div className="relative pl-12 border-l-2 border-gray-100">
+    <div className="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-white border-2 border-gray-100 text-gray-400 flex items-center justify-center font-bold text-sm">
+      {number}
+    </div>
     <div>
-      <h3 className="font-bold text-gray-800 text-sm mb-1">{title}</h3>
-      <p className="text-xs text-gray-500 leading-relaxed mb-2">{desc}</p>
-      <a href={link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 text-xs font-bold flex items-center gap-1 hover:underline">
-        サイトを開く <ExternalLink className="w-3 h-3" />
+      <div className="flex items-center gap-2 mb-1">
+        {icon}
+        <h3 className="font-black text-gray-900 text-base">{title}</h3>
+      </div>
+      <p className="text-sm text-gray-500 leading-relaxed mb-3">{desc}</p>
+      <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-indigo-600 text-sm font-bold hover:text-indigo-700 transition-colors">
+        {title} サイトへ <ExternalLink className="w-3.5 h-3.5" />
       </a>
     </div>
   </div>
