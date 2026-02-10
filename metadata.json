@@ -1,0 +1,7 @@
+{
+  "name": "Gemini Python-Powered Chatbot",
+  "description": "A high-performance AI chatbot built with React and Python, featuring streaming responses, markdown support, and seamless Vercel deployment.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
