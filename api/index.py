@@ -14,7 +14,7 @@ API_KEY = os.environ.get("API_KEY")
 def chat():
     if not API_KEY:
         return jsonify({
-            "error": "API_KEYが設定されていません。VercelのSettingsから設定してください。",
+            "error": "APIキーが設定されていません。VercelのSettings > Environment Variables で 'API_KEY' を登録してください。",
             "status": "error"
         }), 500
 
@@ -22,8 +22,9 @@ def chat():
         data = request.json
         user_message = data.get('message', '')
         
-        # SDKを使わず、直接GoogleのAPIエンドポイントにリクエストを送る (超軽量)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+        # 最新の Gemini 3 Flash モデルを使用
+        model = "gemini-3-flash-preview"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={API_KEY}"
         
         payload = {
             "contents": [{
@@ -31,32 +32,27 @@ def chat():
             }]
         }
         
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, timeout=30)
         response_data = response.json()
         
-        # レスポンスからテキストを抽出
-        if "candidates" in response_data:
+        if "candidates" in response_data and response_data["candidates"]:
             reply = response_data["candidates"][0]["content"]["parts"][0]["text"]
             return jsonify({
                 "reply": reply,
                 "status": "success"
             })
         else:
+            error_msg = response_data.get("error", {}).get("message", "Unknown error")
             return jsonify({
-                "error": "Gemini APIからの応答が不正です。",
-                "details": response_data,
+                "error": f"APIエラー: {error_msg}",
                 "status": "error"
             }), 500
 
     except Exception as e:
         return jsonify({
-            "error": str(e),
+            "error": f"サーバーエラー: {str(e)}",
             "status": "error"
         }), 500
-
-@app.route('/api/health', methods=['GET'])
-def health():
-    return jsonify({"status": "ok", "mode": "lightweight-requests"})
 
 if __name__ == '__main__':
     app.run()
