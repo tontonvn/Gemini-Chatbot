@@ -1,12 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { 
-  Send, Bot, User, Github, CloudLightning, ShieldCheck,
-  ExternalLink, Info, ChevronRight, Settings, Lock
-} from 'lucide-react';
+import * as Lucide from 'lucide-react';
 
-// 型定義
+const { Send, Bot, User, Info, ChevronRight, Settings, SendHorizonal } = Lucide;
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -14,13 +12,12 @@ interface Message {
   timestamp: Date;
 }
 
-// メインコンポーネント (旧App.tsxの内容)
 const App = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: 'こんにちは！準備ができました。\n\n画面が表示されたということは、プログラムは正常です。もしAIから返信がない場合は、VercelのSettingsで「API_KEY」を設定し、Redeploy（再デプロイ）してください。',
+      content: 'こんにちは！画面が表示されましたね。成功です！\n\nAIから返信をもらうには、Vercelの管理画面で「API_KEY」を設定する必要があります。右上のボタンから手順を確認してください。',
       timestamp: new Date(),
     }
   ]);
@@ -67,14 +64,13 @@ const App = () => {
         };
         setMessages(prev => [...prev, assistantMsg]);
       } else {
-        throw new Error(data.error || 'API Error');
+        throw new Error(data.error || '通信エラー');
       }
     } catch (error) {
-      console.error('Chat Error:', error);
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'エラー：APIキーが未設定か、サーバーとの通信に失敗しました。VercelのSettings > Environment Variables で API_KEY を正しく設定し、再デプロイしてください。',
+        content: 'エラーが発生しました。Vercelの設定画面（Settings > Environment Variables）で「API_KEY」が正しく追加されているか確認し、再デプロイしてください。',
         timestamp: new Date(),
       }]);
     } finally {
@@ -83,101 +79,91 @@ const App = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen max-h-screen bg-[#f8fafc]">
-      {/* Navbar */}
-      <nav className="bg-white border-b px-6 py-3 flex items-center justify-between shadow-sm z-30">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-indigo-200 shadow-lg">
-            <Bot className="text-white w-6 h-6" />
+    <div className="flex flex-col h-screen bg-slate-50">
+      <nav className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="bg-indigo-600 p-2 rounded-lg">
+            <Bot className="text-white w-5 h-5" />
           </div>
-          <div>
-            <h1 className="font-bold text-gray-800 leading-none">Gemini Bot</h1>
-            <span className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">Python Backend</span>
-          </div>
+          <h1 className="font-bold text-slate-800">Gemini AI Bot</h1>
         </div>
         <button 
           onClick={() => setShowGuide(!showGuide)}
-          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${showGuide ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
+          className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:bg-indigo-100 transition-colors"
         >
           <Info className="w-4 h-4" />
           設定ガイド
         </button>
       </nav>
 
-      <main className="flex-1 flex overflow-hidden relative">
-        <div className="flex-1 flex flex-col min-w-0 bg-white">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
-            {messages.map((m) => (
-              <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`flex max-w-[92%] md:max-w-[80%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-3`}>
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                    {m.role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
-                  </div>
-                  <div className={`px-5 py-3 rounded-2xl shadow-sm leading-relaxed ${m.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-gray-50 border border-gray-100 text-gray-800 rounded-bl-none'}`}>
-                    <p className="text-sm md:text-base whitespace-pre-wrap">{m.content}</p>
-                    <p className={`text-[10px] mt-1.5 opacity-50 ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
-                      {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
+      <main className="flex-1 overflow-hidden relative flex flex-col max-w-4xl mx-auto w-full bg-white shadow-xl border-x">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+          {messages.map((m) => (
+            <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`flex gap-3 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${m.role === 'user' ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                  {m.role === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-slate-600" />}
+                </div>
+                <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${m.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-slate-100 text-slate-800 rounded-tl-none'}`}>
+                  {m.content}
                 </div>
               </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-gray-400 animate-pulse" />
-                </div>
-                <div className="bg-gray-50 border border-gray-100 px-5 py-3 rounded-2xl">
-                  <div className="flex gap-1.5">
-                    <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
-                    <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="p-4 bg-white border-t">
-            <div className="max-w-4xl mx-auto relative">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="AIにメッセージを送る..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-5 pr-16 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-              />
-              <button 
-                onClick={handleSendMessage}
-                disabled={isLoading || !input.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 disabled:opacity-30 shadow-lg"
-              >
-                <Send className="w-5 h-5" />
-              </button>
             </div>
+          ))}
+          {isLoading && (
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-slate-400 animate-pulse" />
+              </div>
+              <div className="bg-slate-100 p-4 rounded-2xl flex gap-1 items-center">
+                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></div>
+                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 border-t bg-slate-50">
+          <div className="relative">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              placeholder="メッセージを入力..."
+              className="w-full bg-white border border-slate-200 rounded-full py-3 pl-5 pr-14 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all"
+            />
+            <button 
+              onClick={handleSendMessage}
+              disabled={isLoading || !input.trim()}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 disabled:opacity-30 transition-all"
+            >
+              <SendHorizonal className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        {/* Sidebar Guide */}
         {showGuide && (
-          <div className="absolute inset-0 md:relative md:w-[400px] bg-white border-l z-40 overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">重要：設定手順</h2>
-              <button onClick={() => setShowGuide(false)}><ChevronRight /></button>
-            </div>
-            <div className="space-y-6">
-              <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                <p className="text-sm text-indigo-900 font-bold mb-2 flex items-center gap-2">
-                  <Settings className="w-4 h-4" /> VercelでAPIキーを登録
-                </p>
-                <ol className="text-xs text-indigo-800 space-y-2 list-decimal ml-4">
-                  <li>Vercelのプロジェクト画面で <b>Settings</b> を開く</li>
-                  <li>左の <b>Environment Variables</b> を選ぶ</li>
-                  <li>Keyに <b>API_KEY</b>、Valueに <b>取得したキー</b> を入れて Add を押す</li>
-                  <li><b>Deployments</b> タブに行き、最新の履歴の右の「...」から <b>Redeploy</b> を実行する</li>
-                </ol>
+          <div className="absolute inset-0 bg-white/95 z-50 p-8 flex flex-col items-center text-center">
+            <div className="w-full max-w-md">
+              <h2 className="text-2xl font-bold mb-4">API設定の手順</h2>
+              <div className="space-y-4 text-left bg-white border border-slate-200 p-6 rounded-2xl shadow-lg">
+                <p className="text-sm font-bold text-indigo-600 uppercase">1. キーの登録</p>
+                <p className="text-xs text-slate-600">Vercelのプロジェクト画面で「Settings」→「Environment Variables」を開きます。</p>
+                <div className="bg-slate-50 p-3 rounded border font-mono text-[10px] space-y-1">
+                  <div><b>Key:</b> API_KEY</div>
+                  <div><b>Value:</b> (取得したGemini APIキー)</div>
+                </div>
+                <p className="text-sm font-bold text-indigo-600 uppercase">2. 設定の反映</p>
+                <p className="text-xs text-slate-600">「Deployments」タブへ行き、最新の履歴の右側にある「...」から「Redeploy」を押してください。</p>
               </div>
+              <button 
+                onClick={() => setShowGuide(false)}
+                className="mt-8 bg-slate-800 text-white px-8 py-3 rounded-full font-bold hover:bg-slate-900 transition-all"
+              >
+                閉じる
+              </button>
             </div>
           </div>
         )}
@@ -186,9 +172,5 @@ const App = () => {
   );
 };
 
-// マウント処理
-const rootElement = document.getElementById('root');
-if (rootElement) {
-  const root = createRoot(rootElement);
-  root.render(<App />);
-}
+const root = createRoot(document.getElementById('root')!);
+root.render(<App />);
